@@ -18,7 +18,7 @@ public class AITableJian
 		AICommon.N = 3;
 		AICommon.NAME = "jian";
 		AICommon.CARD = ziname;
-		AICommon.huLian = false;
+		AICommon.huLian = true;
 		AICommon.baseP = 12.d / 136;
 		AICommon.gen();
 	}
@@ -30,7 +30,7 @@ public class AITableJian
 		AICommon.N = 3;
 		AICommon.NAME = "jian";
 		AICommon.CARD = ziname;
-		AICommon.huLian = false;
+		AICommon.huLian = true;
 		AICommon.baseP = 12.d / 136;
 		AICommon.load();
 	}
@@ -42,7 +42,7 @@ public class AITableJian
 		AICommon.N = 3;
 		AICommon.NAME = "jian";
 		AICommon.CARD = ziname;
-		AICommon.huLian = false;
+		AICommon.huLian = true;
 		AICommon.baseP = 12.d / 136;
 		AICommon.load(lines);
 	}

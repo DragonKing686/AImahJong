@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class HuUtil
 {
-	public static boolean isHu(List<Integer> input, int guiCard)
+	public static boolean isHu(List<Integer> input, int guiCard, boolean extHu)
 	{
 		List<Integer> cards = new ArrayList<>();
 		for (int i = 0; i < MaJiangDef.MAX_NUM; i++)
@@ -22,7 +22,7 @@ public class HuUtil
 		int guiNum = cards.get(guiCard - 1);
 		cards.set(guiCard - 1, 0);
 
-		return isHuCard(cards, guiNum);
+		return isHuCard(cards, guiNum, extHu);
 	}
 
 	public static boolean isHuExtra(List<Integer> input, List<Integer> guiCard, int extra)
@@ -49,16 +49,17 @@ public class HuUtil
 			cards.set(extra - 1, cards.get(extra - 1) + 1);
 		}
 
-		return isHuCard(cards, guiNum);
+		return isHuCard(cards, guiNum, false);
 	}
 
-	public static boolean isHuCard(List<Integer> cards, int guiNum)
+	public static boolean isHuCard(List<Integer> cards, int guiNum, boolean extHu)
 	{
 		long wan_key = 0;
 		long tong_key = 0;
 		long tiao_key = 0;
 		long feng_key = 0;
 		long jian_key = 0;
+		long zi_key = 0;
 
 		for (int i = MaJiangDef.WAN1; i <= MaJiangDef.WAN9; i++)
 		{
@@ -85,22 +86,35 @@ public class HuUtil
 			int num = cards.get(i - 1);
 			jian_key = jian_key * 10 + num;
 		}
+		// 字牌
+		for (int i = MaJiangDef.FENG_DONG; i <= MaJiangDef.JIAN_BAI; i++)
+		{
+			int num = cards.get(i - 1);
+			zi_key = zi_key * 10 + num;
+		}
 
 		List<List<HuTableInfo>> tmp = new ArrayList<>();
+		List<List<HuTableInfo>> tmpExtHu = new ArrayList<>();
 		if (wan_key != 0)
 		{
 			List<HuTableInfo> wanHuTableInfo = HuTable.table.get(wan_key);
 			tmp.add(wanHuTableInfo);
+			List<HuTableInfo> huTableInfos = HuTableLaiNumber.table.get(wan_key);
+			tmpExtHu.add(huTableInfos);
 		}
 		if (tong_key != 0)
 		{
 			List<HuTableInfo> tongHuTableInfo = HuTable.table.get(tong_key);
 			tmp.add(tongHuTableInfo);
+			List<HuTableInfo> huTableInfos = HuTableLaiNumber.table.get(tong_key);
+			tmpExtHu.add(huTableInfos);
 		}
 		if (tiao_key != 0)
 		{
 			List<HuTableInfo> tiaoHuTableInfo = HuTable.table.get(tiao_key);
 			tmp.add(tiaoHuTableInfo);
+			List<HuTableInfo> huTableInfos = HuTableLaiNumber.table.get(tiao_key);
+			tmpExtHu.add(huTableInfos);
 		}
 		if (feng_key != 0)
 		{
@@ -112,13 +126,19 @@ public class HuUtil
 			List<HuTableInfo> jianHuTableInfo = HuTableJian.table.get(jian_key);
 			tmp.add(jianHuTableInfo);
 		}
+		if (zi_key != 0) {
+			List<HuTableInfo> jianHuTableInfo = HuTableLaiText.table.get(zi_key);
+			tmpExtHu.add(jianHuTableInfo);
+		}
 
+		boolean isHu = true;
 		List<List<HuTableInfo>> tmp1 = new ArrayList<>();
 		for (List<HuTableInfo> huTableInfos : tmp)
 		{
 			if (huTableInfos == null)
 			{
-				return false;
+				isHu = false;
+				break;
 			}
 			List<HuTableInfo> tmp2 = new ArrayList<>();
 			for (HuTableInfo huTableInfo : huTableInfos)
@@ -130,19 +150,79 @@ public class HuUtil
 			}
 			if (tmp2.isEmpty())
 			{
-				return false;
+				isHu = false;
+				break;
 			}
 			tmp1.add(tmp2);
 		}
 
-		return isHuTableInfo(tmp1, 0, guiNum, false);
+		boolean isHuExt = true;
+		List<List<HuTableInfo>> tmp2 = new ArrayList<>();
+		for (List<HuTableInfo> huTableInfos : tmpExtHu)
+		{
+			if (huTableInfos == null)
+			{
+				isHuExt = false;
+				break;
+			}
+			List<HuTableInfo> tmp3 = new ArrayList<>();
+			for (HuTableInfo huTableInfo : huTableInfos)
+			{
+				if (huTableInfo.hupai == null && huTableInfo.needGui <= guiNum)
+				{
+					tmp3.add(huTableInfo);
+				}
+			}
+			if (tmp3.isEmpty())
+			{
+				isHuExt = false;
+				break;
+			}
+			tmp2.add(tmp3);
+		}
+		boolean normalHU = isHu && isHuTableInfo(tmp1, 0, guiNum, false);
+		boolean extHU = isHuExt && isHuTableInfo2(tmp2, 0, guiNum, false);
+		return extHu ? normalHU || extHU : normalHU;
+	}
+
+	private static boolean isHuTableInfo2(List<List<HuTableInfo>> tmp, int index, int guiNum, boolean jiang)
+	{
+		if (index >= tmp.size())
+		{
+			return (guiNum % 3 == 0 && jiang == true) || (guiNum % 3 == 2 && jiang == false);
+		}
+		List<HuTableInfo> huTableInfos = tmp.get(index);
+		for (HuTableInfo huTableInfo : huTableInfos)
+		{
+			if (jiang)
+			{
+				if (huTableInfo.hupai == null && huTableInfo.needGui <= guiNum && huTableInfo.jiang == false)
+				{
+					if (isHuTableInfo(tmp, index + 1, guiNum - huTableInfo.needGui, jiang))
+					{
+						return true;
+					}
+				}
+			}
+			else
+			{
+				if (huTableInfo.hupai == null && huTableInfo.needGui <= guiNum)
+				{
+					if (isHuTableInfo(tmp, index + 1, guiNum - huTableInfo.needGui, huTableInfo.jiang))
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	private static boolean isHuTableInfo(List<List<HuTableInfo>> tmp, int index, int guiNum, boolean jiang)
 	{
 		if (index >= tmp.size())
 		{
-			return (guiNum % 3 == 0 && jiang == true) || (guiNum % 3 == 2 && jiang == false);
+			return true;
 		}
 		List<HuTableInfo> huTableInfos = tmp.get(index);
 		for (HuTableInfo huTableInfo : huTableInfos)
@@ -385,29 +465,33 @@ public class HuUtil
 
 	public static void gen()
 	{
-		HuTableJian.gen();
-		HuTableFeng.gen();
-		HuTable.gen();
+//		HuTableJian.gen();
+//		HuTableFeng.gen();
+//		HuTable.gen();
+		HuTableLaiNumber.gen();
+		HuTableLaiText.gen();
 	}
 
 	public synchronized static void load()
 	{
 		HuTableJian.load();
 		HuTableFeng.load();
+		HuTableLaiNumber.load();
+		HuTableLaiText.load();
 		HuTable.load();
 	}
 
 	public static void testHu()
 	{
-		String init = "1万,1万";
-		String gui = "1万";
+		String init = "1万,4万,2条,6条,9条,1筒,5筒,9筒,东,南,白,发";
+		String gui = "中";
 		List<Integer> cards = MaJiangDef.stringToCards(init);
-		System.out.println(HuUtil.isHu(cards, MaJiangDef.stringToCard(gui)));
+		System.out.println(HuUtil.isHu(cards, MaJiangDef.stringToCard(gui), true));
 	}
 
 	public static void testTing()
 	{
-		String init = "1万,1万,1筒,3筒,2筒,2条,3条,4条,东,东";
+		String init = "1万,3万,1筒,3筒,2筒,2条,3条,4条,东,西";
 		String gui = "1筒";
 		List<Integer> cards = MaJiangDef.stringToCards(init);
 		System.out.println(MaJiangDef.cardsToString(HuUtil.isTing(cards, MaJiangDef.stringToCard(gui))));
@@ -417,9 +501,9 @@ public class HuUtil
 	public static void main(String[] args)
 	{
 		// 需要生成文件时 加上gen()
-		//gen();
-		load();
-		testHu();
-		testTing();
+		gen();
+//		load();
+//		testHu();
+//		testTing();
 	}
 }

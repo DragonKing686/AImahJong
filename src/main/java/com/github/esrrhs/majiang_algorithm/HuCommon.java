@@ -24,11 +24,11 @@ public class HuCommon
 	public static void main(String[] args)
 	{
 		HuCommon.table = new ConcurrentHashMap<>();
-		HuCommon.N = 9;
-		HuCommon.NAME = "normal";
-		HuCommon.CARD = HuTable.names;
-		HuCommon.huLian = true;
-		check_hu(333000004);
+		HuCommon.N = 7;
+		HuCommon.NAME = "laiText";
+		HuCommon.CARD = HuTableLaiNumber.ziname;
+		HuCommon.huLian = false;
+		check_hu(11011);
 	}
 
 	public static void gen()
@@ -272,7 +272,7 @@ public class HuCommon
 
 		HashSet<HuInfo> huInfos = new HashSet<>();
 
-		for (int guinum = 0; guinum <= 8 && total + guinum <= 14; guinum++)
+		for (int guinum = 0; guinum <= 4 && total + guinum <= 14; guinum++)
 		{
 			int[] tmpnum = new int[N];
 			HashSet<Long> tmpcard = new HashSet<>();
@@ -300,14 +300,14 @@ public class HuCommon
 
 				if (!max)
 				{
-					check_hu(huInfos, num, -1, -1, guinum);
+					check_hu2(huInfos, num, -1, -1, guinum);
 				}
 				for (int i = 0; i < N && !max; i++)
 				{
 					num[i]++;
 					if (num[i] <= 4)
 					{
-						check_hu(huInfos, num, -1, i, guinum);
+						check_hu2(huInfos, num, i, i, guinum);
 					}
 					num[i]--;
 				}
@@ -361,21 +361,114 @@ public class HuCommon
 		table.put(card, tmphu);
 	}
 
-	public static void check_hu(HashSet<HuInfo> huInfos, int[] num, int jiang, int in, int gui)
+	public static void check_hu2(HashSet<HuInfo> huInfos, int[] num, int jiang, int in, int gui)
 	{
-		if (huLian)
-		{
+		if("laiNumber".equals(NAME)) {
+			extNumberCard(huInfos, num, jiang, in, gui, 0, N);
+		} else {
+			boolean twoZi = true;
 			for (int i = 0; i < N; i++)
 			{
-				if (num[i] > 0 && i + 1 < N && num[i + 1] > 0 && i + 2 < N && num[i + 2] > 0)
+				if (num[i] >= 2)
 				{
-					num[i]--;
-					num[i + 1]--;
-					num[i + 2]--;
-					check_hu(huInfos, num, jiang, in, gui);
+					twoZi = false;
+				}
+			}
+			if (twoZi) {
+				extracted(huInfos, num, jiang, in, gui, 0,N);
+			}
+		}
+
+		for (int i = 0; i < N; i++)
+		{
+			if (num[i] != 0)
+			{
+				return;
+			}
+		}
+
+		HuInfo huInfo = new HuInfo();
+		huInfo.hupai = (byte) in;
+		huInfo.jiang = (byte) jiang;
+		huInfo.needGui = (byte) gui;
+		huInfos.add(huInfo);
+	}
+
+	private static void extNumberCard(HashSet<HuInfo> huInfos, int[] num, int jiang, int in, int gui, int start, int end) {
+		int lastIndex = -3;
+		boolean laiHu = true;
+		int cardCount = 0;
+		for (int i = start; i < end; i++) {
+			cardCount += num[i];
+			if (num[i] == 1) {
+				if (i - lastIndex > 2) {
+					lastIndex = i;
+				}
+				else {
+					laiHu = false;
+				}
+			}
+			else if(num[i] > 1) {
+				laiHu = false;
+			}
+		}
+		if (cardCount == 3 && laiHu) {
+			extracted(huInfos, num, jiang, in, gui, start, end);
+		}
+	}
+
+	private static void extracted(HashSet<HuInfo> huInfos, int[] num, int jiang, int in, int gui, int start, int end) {
+		boolean[] isModified = new boolean[N];
+		boolean hasCard = false;
+		for (int i = start; i < end; i++) {
+			if (num[i] != 0) {
+				isModified[i] = true;
+				num[i]--;
+				hasCard = true;
+			}
+		}
+		if (hasCard) {
+			check_hu2(huInfos, num, jiang, in, gui);
+			for (int i = start; i < end; i++) {
+				if (isModified[i]) {
 					num[i]++;
-					num[i + 1]++;
-					num[i + 2]++;
+				}
+			}
+		}
+
+	}
+
+	public static void check_hu(HashSet<HuInfo> huInfos, int[] num, int jiang, int in, int gui)
+	{
+		if (huLian) {
+			if ("normal".equals(NAME)) {
+				for (int i = 0; i < N; i++) {
+					if (num[i] > 0 && i + 1 < N && num[i + 1] > 0 && i + 2 < N && num[i + 2] > 0) {
+						num[i]--;
+						num[i + 1]--;
+						num[i + 2]--;
+						check_hu(huInfos, num, jiang, in, gui);
+						num[i]++;
+						num[i + 1]++;
+						num[i + 2]++;
+					}
+				}
+			}
+			else {
+				for (int i = 0; i < N; i++) {
+					for (int j = i + 1; j < N; j++) {
+						for (int k = j + 1; k < N; k++) {
+							if (num[i] > 0 && num[j] > 0 && num[k] > 0) {
+								num[i]--;
+								num[j]--;
+								num[k]--;
+								check_hu(huInfos, num, jiang, in, gui);
+								num[i]++;
+								num[j]++;
+								num[k]++;
+							}
+						}
+					}
 				}
 			}
 		}

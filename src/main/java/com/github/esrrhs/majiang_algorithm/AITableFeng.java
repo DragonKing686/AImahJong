@@ -18,7 +18,7 @@ public class AITableFeng
 		AICommon.N = 4;
 		AICommon.NAME = "feng";
 		AICommon.CARD = ziname;
-		AICommon.huLian = false;
+		AICommon.huLian = true;
 		AICommon.baseP = 16.d / 136;
 		AICommon.gen();
 	}
@@ -30,7 +30,7 @@ public class AITableFeng
 		AICommon.N = 4;
 		AICommon.NAME = "feng";
 		AICommon.CARD = ziname;
-		AICommon.huLian = false;
+		AICommon.huLian = true;
 		AICommon.baseP = 16.d / 136;
 		AICommon.load();
 	}
@@ -42,7 +42,7 @@ public class AITableFeng
 		AICommon.N = 4;
 		AICommon.NAME = "feng";
 		AICommon.CARD = ziname;
-		AICommon.huLian = false;
+		AICommon.huLian = true;
 		AICommon.baseP = 16.d / 136;
 		AICommon.load(lines);
 	}

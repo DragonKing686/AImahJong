@@ -24,9 +24,9 @@ public class AICommon
 	{
 		AICommon.table = new ConcurrentHashMap<>();
 		AICommon.N = 9;
-		AICommon.NAME = "normal";
-		AICommon.CARD = AITable.names;
-		AICommon.huLian = true;
+		AICommon.NAME = "laiNumber";
+		AICommon.CARD = AITableText.ziname;
+		AICommon.huLian = false;
 		AICommon.baseP = 36.d / 136;
 
 		HashMap<Integer, HashSet<Long>> tmpcards = new HashMap<>();
@@ -38,24 +38,24 @@ public class AICommon
 			tmpcards.put(inputNum, tmpcard);
 		}
 
-		long key = 20110000;
+		long key = 100010;
 		check_ai(key, tmpcards);
-		try
-		{
-			File file = new File("majiang_ai_" + NAME + ".txt");
-			if (file.exists())
-			{
-				file.delete();
-			}
-			file.createNewFile();
-			FileOutputStream out = new FileOutputStream(file, true);
-			output(key, out);
-			out.close();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+//		try
+//		{
+//			File file = new File("majiang_ai_" + NAME + ".txt");
+//			if (file.exists())
+//			{
+//				file.delete();
+//			}
+//			file.createNewFile();
+//			FileOutputStream out = new FileOutputStream(file, true);
+//			output(key, out);
+//			out.close();
+//		}
+//		catch (Exception e)
+//		{
+//			e.printStackTrace();
+//		}
 	}
 
 	public static void gen()
@@ -227,7 +227,7 @@ public class AICommon
 
 				if (!max)
 				{
-					check_ai(aiInfos, num, -1, inputNum);
+					check_ai2(aiInfos, num, -1, inputNum);
 					valid++;
 				}
 
@@ -257,21 +257,111 @@ public class AICommon
 		table.put(card, tmpAI);
 	}
 
-	public static void check_ai(HashSet<AIInfo> aiInfos, int[] num, int jiang, int inputNum)
+	public static void check_ai2(HashSet<AIInfo> aiInfos, int[] num, int jiang, int in)
 	{
-		if (huLian)
-		{
+		if("laiNumber".equals(NAME)) {
+			extNumberCard(aiInfos, num, jiang, in, 0, N);
+		} else {
+			boolean twoZi = true;
 			for (int i = 0; i < N; i++)
 			{
-				if (num[i] > 0 && i + 1 < N && num[i + 1] > 0 && i + 2 < N && num[i + 2] > 0)
+				if (num[i] >= 2)
 				{
-					num[i]--;
-					num[i + 1]--;
-					num[i + 2]--;
-					check_ai(aiInfos, num, jiang, inputNum);
+					twoZi = false;
+				}
+			}
+			if (twoZi) {
+				extracted(aiInfos, num, jiang, in, 0,N);
+			}
+		}
+
+		for (int i = 0; i < N; i++)
+		{
+			if (num[i] != 0)
+			{
+				return;
+			}
+		}
+
+		AIInfo aiInfo = new AIInfo();
+		aiInfo.inputNum = (byte) in;
+		aiInfo.jiang = (byte) jiang;
+		aiInfos.add(aiInfo);
+	}
+
+	private static void extNumberCard(HashSet<AIInfo> aiInfos, int[] num, int jiang, int in, int start, int end) {
+		int lastIndex = -3;
+		boolean laiHu = true;
+		int cardCount = 0;
+		for (int i = start; i < end; i++) {
+			cardCount += num[i];
+			if (num[i] == 1) {
+				if (i - lastIndex > 2) {
+					lastIndex = i;
+				} else {
+					laiHu = false;
+				}
+			} else if (num[i] > 1) {
+				laiHu = false;
+			}
+		}
+		if (cardCount == 3 && laiHu) {
+			extracted(aiInfos, num, jiang, in, start, end);
+		}
+	}
+
+	private static void extracted(HashSet<AIInfo> aiInfos, int[] num, int jiang, int in, int start, int end) {
+		boolean[] isModified = new boolean[N];
+		boolean hasCard = false;
+		for (int i = start; i < end; i++) {
+			if (num[i] != 0) {
+				isModified[i] = true;
+				num[i]--;
+				hasCard = true;
+			}
+		}
+		if (hasCard) {
+			check_ai2(aiInfos, num, jiang, in);
+			for (int i = start; i < end; i++) {
+				if (isModified[i]) {
 					num[i]++;
-					num[i + 1]++;
-					num[i + 2]++;
+				}
+			}
+		}
+
+	}
+
+	public static void check_ai(HashSet<AIInfo> aiInfos, int[] num, int jiang, int inputNum)
+	{
+		if (huLian) {
+			if ("normal".equals(NAME)) {
+				for (int i = 0; i < N; i++) {
+					if (num[i] > 0 && i + 1 < N && num[i + 1] > 0 && i + 2 < N && num[i + 2] > 0) {
+						num[i]--;
+						num[i + 1]--;
+						num[i + 2]--;
+						check_ai(aiInfos, num, jiang, inputNum);
+						num[i]++;
+						num[i + 1]++;
+						num[i + 2]++;
+					}
+				}
+			}
+			else {
+				for (int i = 0; i < N; i++) {
+					for (int j = i + 1; j < N; j++) {
+						for (int k = j + 1; k < N; k++) {
+							if (num[i] > 0 && num[j] > 0 && num[k] > 0) {
+								num[i]--;
+								num[j]--;
+								num[k]--;
+								check_ai(aiInfos, num, jiang, inputNum);
+								num[i]++;
+								num[j]++;
+								num[k]++;
+							}
+						}
+					}
 				}
 			}
 		}

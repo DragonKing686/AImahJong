@@ -18,7 +18,7 @@ public class HuTableFeng
 		HuCommon.N = 4;
 		HuCommon.NAME = "feng";
 		HuCommon.CARD = ziname;
-		HuCommon.huLian = false;
+		HuCommon.huLian = true;
 		HuCommon.gen();
 	}
 
@@ -29,7 +29,7 @@ public class HuTableFeng
 		HuCommon.N = 4;
 		HuCommon.NAME = "feng";
 		HuCommon.CARD = ziname;
-		HuCommon.huLian = false;
+		HuCommon.huLian = true;
 		HuCommon.load();
 	}
 
@@ -40,7 +40,7 @@ public class HuTableFeng
 		HuCommon.N = 4;
 		HuCommon.NAME = "feng";
 		HuCommon.CARD = ziname;
-		HuCommon.huLian = false;
+		HuCommon.huLian = true;
 		HuCommon.load(lines);
 	}
 }
