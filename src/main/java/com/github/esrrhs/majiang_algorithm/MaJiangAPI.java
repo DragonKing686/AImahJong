@@ -127,7 +127,7 @@ public class MaJiangAPI {
         List<Integer> cardsList = MaJiangDef.stringToCards(cards);
         List<Integer> guiList = MaJiangDef.stringToCards(gui);
         long start = System.currentTimeMillis();
-        int outAI = AIUtil.outAI(cardsList, guiList, extHu);
+        int outAI = AIUtil.outAI(cardsList, guiList, extHu == null || extHu);
         long end = System.currentTimeMillis();
 
         String string = MaJiangDef.cardToString(outAI);

@@ -309,7 +309,7 @@ public class AIUtil
 
 	public static void testOut()
 	{
-		String init = "3筒,5筒,1万,4万,9万,7筒,1条,4条,9条,东,西,南,北,发";
+		String init = "3筒,5筒,1万,4万,9万,6筒,1条,4条,9条,东,西,南,北,发";
 		String guiStr = "中";
 		List<Integer> cards = MaJiangDef.stringToCards(init);
 		List<Integer> gui = MaJiangDef.stringToCards(guiStr);
@@ -416,10 +416,10 @@ public class AIUtil
 	public static void main(String[] args)
 	{
 		// 需要生成文件时 加上gen()
-		gen();
-//		HuUtil.load();
-//		load();
-//		testOut();
+//		gen();
+		HuUtil.load();
+		load();
+		testOut();
 //		testChi();
 //		testPeng();
 //		testGang();

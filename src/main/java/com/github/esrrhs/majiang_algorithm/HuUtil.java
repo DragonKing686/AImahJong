@@ -297,6 +297,7 @@ public class HuUtil
 		long tiao_key = 0;
 		long feng_key = 0;
 		long jian_key = 0;
+		long zi_key = 0;
 
 		for (int i = MaJiangDef.WAN1; i <= MaJiangDef.WAN9; i++)
 		{
@@ -323,16 +324,24 @@ public class HuUtil
 			int num = cards.get(i - 1);
 			jian_key = jian_key * 10 + num;
 		}
+		for (int i = MaJiangDef.FENG_DONG; i <= MaJiangDef.JIAN_BAI; i++)
+		{
+			int num = cards.get(i - 1);
+			zi_key = zi_key * 10 + num;
+		}
 
 		List<Integer> tmpType = new ArrayList<>();
 		List<List<HuTableInfo>> tmpTing = new ArrayList<>();
+		List<List<HuTableInfo>> tmpTingLai = new ArrayList<>();
 		List<List<HuTableInfo>> tmp = new ArrayList<>();
 
 		List<HuTableInfo> wanHuTableInfo = HuTable.table.get(wan_key);
+		List<HuTableInfo> wanHuTableInfo2 = HuTableLaiNumber.table.get(wan_key);
 		if (wanHuTableInfo == null)
 		{
 			return new ArrayList<>();
 		}
+		tmpTingLai.add(wanHuTableInfo2);
 		tmpTing.add(wanHuTableInfo);
 		if (wan_key != 0)
 		{
@@ -340,10 +349,16 @@ public class HuUtil
 			tmp.add(wanHuTableInfo);
 		}
 		List<HuTableInfo> tongHuTableInfo = HuTable.table.get(tong_key);
+		List<HuTableInfo> tongHuTableInfo2 = HuTableLaiNumber.table.get(tong_key);
 		if (tongHuTableInfo == null)
 		{
 			return new ArrayList<>();
 		}
+		if (tongHuTableInfo2 == null)
+		{
+			return new ArrayList<>();
+		}
+		tmpTingLai.add(tongHuTableInfo2);
 		tmpTing.add(tongHuTableInfo);
 		if (tong_key != 0)
 		{
@@ -351,10 +366,12 @@ public class HuUtil
 			tmp.add(tongHuTableInfo);
 		}
 		List<HuTableInfo> tiaoHuTableInfo = HuTable.table.get(tiao_key);
+		List<HuTableInfo> tiaoHuTableInfo2 = HuTableLaiNumber.table.get(tiao_key);
 		if (tiaoHuTableInfo == null)
 		{
 			return new ArrayList<>();
 		}
+		tmpTingLai.add(tiaoHuTableInfo2);
 		tmpTing.add(tiaoHuTableInfo);
 		if (tiao_key != 0)
 		{
@@ -491,7 +508,7 @@ public class HuUtil
 
 	public static void testTing()
 	{
-		String init = "1万,3万,1筒,3筒,2筒,2条,3条,4条,东,西";
+		String init = "1万,5万,1筒,4筒,8筒,2条,5条,8条,东,西,南,北,发";
 		String gui = "1筒";
 		List<Integer> cards = MaJiangDef.stringToCards(init);
 		System.out.println(MaJiangDef.cardsToString(HuUtil.isTing(cards, MaJiangDef.stringToCard(gui))));
@@ -501,9 +518,9 @@ public class HuUtil
 	public static void main(String[] args)
 	{
 		// 需要生成文件时 加上gen()
-		gen();
-//		load();
+//		gen();
+		load();
 //		testHu();
-//		testTing();
+		testTing();
 	}
 }

@@ -38,7 +38,7 @@ public class AICommon
 			tmpcards.put(inputNum, tmpcard);
 		}
 
-		long key = 100010;
+		long key = 1000100;
 		check_ai(key, tmpcards);
 //		try
 //		{
