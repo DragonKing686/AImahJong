@@ -64,6 +64,7 @@ public class MaJiangDef
 	public static final int TYPE_TIAO = 3;
 	public static final int TYPE_FENG = 4;
 	public static final int TYPE_JIAN = 5;
+	public static final int TYPE_ZI = 4;
 	public static final int TYPE_HUA = 6;
 
 	public static int toCard(int type, int index)

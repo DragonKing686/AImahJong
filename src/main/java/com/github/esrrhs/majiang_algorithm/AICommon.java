@@ -18,7 +18,7 @@ public class AICommon
 	public static String[] CARD;
 	public static boolean huLian;
 	public static double baseP;
-	public static final int LEVEL = 5;
+	public static final int LEVEL = 2;
 
 	public static void main(String[] args)
 	{
@@ -62,7 +62,7 @@ public class AICommon
 	{
 		final HashSet<Long> card = new HashSet<>();
 
-		for (int i = 0; i <= 14; i++)
+		for (int i = 0; i <= 3; i++)
 		{
 			int[] num = new int[N];
 			gen_card(card, num, 0, i);

@@ -331,9 +331,11 @@ public class HuUtil
 		}
 
 		List<Integer> tmpType = new ArrayList<>();
+		List<Integer> tmpTypeLai = new ArrayList<>();
 		List<List<HuTableInfo>> tmpTing = new ArrayList<>();
 		List<List<HuTableInfo>> tmpTingLai = new ArrayList<>();
 		List<List<HuTableInfo>> tmp = new ArrayList<>();
+		List<List<HuTableInfo>> tmpLai = new ArrayList<>();
 
 		List<HuTableInfo> wanHuTableInfo = HuTable.table.get(wan_key);
 		List<HuTableInfo> wanHuTableInfo2 = HuTableLaiNumber.table.get(wan_key);
@@ -346,7 +348,9 @@ public class HuUtil
 		if (wan_key != 0)
 		{
 			tmpType.add(MaJiangDef.TYPE_WAN);
+			tmpTypeLai.add(MaJiangDef.TYPE_WAN);
 			tmp.add(wanHuTableInfo);
+			tmpLai.add(wanHuTableInfo2);
 		}
 		List<HuTableInfo> tongHuTableInfo = HuTable.table.get(tong_key);
 		List<HuTableInfo> tongHuTableInfo2 = HuTableLaiNumber.table.get(tong_key);
@@ -364,6 +368,8 @@ public class HuUtil
 		{
 			tmpType.add(MaJiangDef.TYPE_TONG);
 			tmp.add(tongHuTableInfo);
+			tmpLai.add(tongHuTableInfo2);
+			tmpTypeLai.add(MaJiangDef.TYPE_TONG);
 		}
 		List<HuTableInfo> tiaoHuTableInfo = HuTable.table.get(tiao_key);
 		List<HuTableInfo> tiaoHuTableInfo2 = HuTableLaiNumber.table.get(tiao_key);
@@ -377,6 +383,8 @@ public class HuUtil
 		{
 			tmpType.add(MaJiangDef.TYPE_TIAO);
 			tmp.add(tiaoHuTableInfo);
+			tmpLai.add(tiaoHuTableInfo2);
+			tmpTypeLai.add(MaJiangDef.TYPE_TIAO);
 		}
 		List<HuTableInfo> fengHuTableInfo = HuTableFeng.table.get(feng_key);
 		if (fengHuTableInfo == null)
@@ -400,6 +408,13 @@ public class HuUtil
 			tmpType.add(MaJiangDef.TYPE_JIAN);
 			tmp.add(jianHuTableInfo);
 		}
+		List<HuTableInfo> ziHuTableInfo = HuTableLaiText.table.get(zi_key);
+		tmpTingLai.add(ziHuTableInfo);
+		if (zi_key != 0)
+		{
+			tmpTypeLai.add(MaJiangDef.TYPE_ZI);
+			tmpLai.add(ziHuTableInfo);
+		}
 
 		List<Integer> ret = new ArrayList<>();
 		for (int type = MaJiangDef.TYPE_WAN; type <= MaJiangDef.TYPE_JIAN; type++)
@@ -421,6 +436,42 @@ public class HuUtil
 					}
 
 					if (!cached && isTingHuTableInfo(tmpType, tmp, 0, guiNum - huTableInfo.needGui, huTableInfo.jiang,
+							type))
+					{
+						for (int j = 0; j < huTableInfo.hupai.length; j++)
+						{
+							if (huTableInfo.hupai[j] > 0)
+							{
+								if (cache[j] == 0)
+								{
+									ret.add(MaJiangDef.toCard(type, j));
+								}
+								cache[j]++;
+							}
+						}
+					}
+				}
+			}
+		}
+		for (int type = MaJiangDef.TYPE_WAN; type <= MaJiangDef.TYPE_ZI; type++)
+		{
+			List<HuTableInfo> huTableInfos = tmpLai.get(type - 1);
+			int[] cache = new int[9];
+			for (HuTableInfo huTableInfo : huTableInfos)
+			{
+				if (huTableInfo.hupai != null && huTableInfo.needGui <= guiNum)
+				{
+					boolean cached = true;
+					for (int j = 0; j < huTableInfo.hupai.length; j++)
+					{
+						if (huTableInfo.hupai[j] > 0 && cache[j] == 0)
+						{
+							cached = false;
+							break;
+						}
+					}
+
+					if (!cached && isTingHuTableInfo(tmpTypeLai, tmpLai, 0, guiNum - huTableInfo.needGui, huTableInfo.jiang,
 							type))
 					{
 						for (int j = 0; j < huTableInfo.hupai.length; j++)
@@ -509,7 +560,7 @@ public class HuUtil
 	public static void testTing()
 	{
 		String init = "1万,5万,1筒,4筒,8筒,2条,5条,8条,东,西,南,北,发";
-		String gui = "1筒";
+		String gui = "中";
 		List<Integer> cards = MaJiangDef.stringToCards(init);
 		System.out.println(MaJiangDef.cardsToString(HuUtil.isTing(cards, MaJiangDef.stringToCard(gui))));
 		System.out.println(MaJiangDef.cardsToString(HuUtil.isTingExtra(cards, MaJiangDef.stringToCards(gui))));

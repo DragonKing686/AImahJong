@@ -22,7 +22,7 @@ public class HuTableLaiNumber {
     {
         table.clear();
         HuCommon.table = table;
-        HuCommon.N = 4;
+        HuCommon.N = 9;
         HuCommon.NAME = "laiNumber";
         HuCommon.CARD = ziname;
         HuCommon.huLian = false;
@@ -33,7 +33,7 @@ public class HuTableLaiNumber {
     {
         table.clear();
         HuCommon.table = table;
-        HuCommon.N = 4;
+        HuCommon.N = 9;
         HuCommon.NAME = "laiNumber";
         HuCommon.CARD = ziname;
         HuCommon.huLian = false;
