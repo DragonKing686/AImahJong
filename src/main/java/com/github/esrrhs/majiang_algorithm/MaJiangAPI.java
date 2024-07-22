@@ -42,9 +42,10 @@ public class MaJiangAPI {
     public JSONObject isTing(@RequestBody JSONObject body) {
         String cards = body.getString("cards");
         String gui = body.getString("gui");
+        Boolean extHu = body.getBoolean("extHu");
         List<Integer> cardsList = MaJiangDef.stringToCards(cards);
         Collections.sort(cardsList);
-        List<Integer> integerList = HuUtil.isTing(cardsList, MaJiangDef.stringToCard(gui));
+        List<Integer> integerList = HuUtil.isTing(cardsList, MaJiangDef.stringToCard(gui), extHu);
         String cardsToString = MaJiangDef.cardsToString(integerList);
         JSONObject result = new JSONObject();
         result.put("resultCode", "0");

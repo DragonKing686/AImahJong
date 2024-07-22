@@ -1,10 +1,15 @@
 package com.github.esrrhs.majiang_algorithm;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by bjzhaoxin on 2017/12/4.
@@ -20,8 +25,8 @@ public class HuUtil {
         }
         int guiNum = cards.get(guiCard - 1);
         cards.set(guiCard - 1, 0);
-
-        return isHuCard(cards, guiNum, extHu);
+        boolean otherHU = otherHu(input, guiCard, extHu);
+        return isHuCard(cards, guiNum, extHu) || otherHU;
     }
 
     public static boolean isHuExtra(List<Integer> input, List<Integer> guiCard, int extra) {
@@ -205,7 +210,7 @@ public class HuUtil {
         return false;
     }
 
-    public static List<Integer> isTing(List<Integer> input, int guiCard) {
+    public static List<Integer> isTing(List<Integer> input, int guiCard, boolean extHu) {
         List<Integer> cards = new ArrayList<>();
         for (int i = 0; i < MaJiangDef.MAX_NUM; i++) {
             cards.add(0);
@@ -215,8 +220,69 @@ public class HuUtil {
         }
         int guiNum = cards.get(guiCard - 1);
         cards.set(guiCard - 1, 0);
+        List<Integer> tingCard = new ArrayList<>();
+        tingCard.addAll(isTingCard(cards, guiNum));
+        if (extHu) {
+            tingCard.addAll(otherTing(input,  guiCard, extHu));
+        }
+        return tingCard;
+    }
 
-        return isTingCard(cards, guiNum);
+    private static List<Integer> otherTing(List<Integer> tmp, int guiCard, boolean extHu) {
+        if (tmp.size() != 13) {
+            return new ArrayList<>();
+        }
+        List<Integer> result = new ArrayList<>();
+        result.addAll(HuUtil.tingQiDui(tmp, guiCard));
+        if (extHu) {
+            // 有字牌的麻将，例如乐平麻将,十三幺
+            result.addAll(HuUtil.tingThirthen(tmp, guiCard));
+            // 清一色
+            result.addAll(HuUtil.tingQingColor(tmp, guiCard));
+        }
+        return result;
+    }
+
+    private static List<Integer> tingQingColor(List<Integer> tmp, int guiCard) {
+        List<Integer> result = new ArrayList<>();
+        List<Integer> guiList = new ArrayList<>();
+        guiList.add(guiCard);
+        for (int i = MaJiangDef.WAN1; i <= MaJiangDef.JIAN_BAI ; i++) {
+            List<Integer> all = new ArrayList<>(tmp);
+            all.add(i);
+            if (isQingColor(all,guiList, false) == 1) {
+                result.add(i);
+            }
+        }
+        return result;
+    }
+
+    private static List<Integer> tingThirthen(List<Integer> tmp, int guiCard) {
+        List<Integer> result = new ArrayList<>();
+        List<Integer> guiList = new ArrayList<>();
+        guiList.add(guiCard);
+        for (int i = MaJiangDef.WAN1; i <= MaJiangDef.JIAN_BAI ; i++) {
+            List<Integer> all = new ArrayList<>(tmp);
+            all.add(i);
+            if (isThirthen(all, guiList, false) == 1) {
+                result.add(i);
+            }
+        }
+        return result;
+    }
+
+    private static List<Integer> tingQiDui(List<Integer> tmp, int guiCard) {
+        List<Integer> result = new ArrayList<>();
+        List<Integer> guiList = new ArrayList<>();
+        guiList.add(guiCard);
+        for (int i = MaJiangDef.WAN1; i <= MaJiangDef.JIAN_BAI ; i++) {
+            List<Integer> all = new ArrayList<>(tmp);
+            all.add(i);
+            if (isQiDui(all, guiList, false) == 1) {
+                result.add(i);
+            }
+        }
+        return result;
     }
 
     public static List<Integer> isTingExtra(List<Integer> input, List<Integer> guiCard) {
@@ -373,7 +439,7 @@ public class HuUtil {
             }
         }
         for (int type = MaJiangDef.TYPE_WAN; type <= MaJiangDef.TYPE_ZI; type++) {
-            List<HuTableInfo> huTableInfos = tmpLai.get(type - 1);
+            List<HuTableInfo> huTableInfos = tmpTingLai.get(type - 1);
             int[] cache = new int[9];
             if (huTableInfos == null) {
                 continue;
@@ -437,15 +503,35 @@ public class HuUtil {
         return false;
     }
 
-    public static double isQiDui(List<Integer> tmp, List<Integer> guiCard) {
+    private static boolean otherHu(List<Integer> tmp, int guiCard, boolean extHu) {
+        if (tmp.size() != 14) {
+            return false;
+        }
+        List<Integer> guiList = new ArrayList<>();
+        guiList.add(guiCard);
+        double qidui = HuUtil.isQiDui(tmp, guiList, false);
+        if (qidui == 1) {
+            return true;
+        }
+        if (extHu) {
+            // 有字牌的麻将，例如乐平麻将,十三幺
+            double thirthen = HuUtil.isThirthen(tmp, guiList, false);
+            if (thirthen == 1) {
+                return true;
+            }
+            // 清一色
+            double qingColor = HuUtil.isQingColor(tmp, guiList, false);
+            if (qingColor == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static double isQiDui(List<Integer> tmp, List<Integer> guiCard, boolean isScore) {
         // 统计每种牌的出现次数
         Map<Integer, Integer> cardCount = new HashMap<>();
         int guiCount = 0;
-
-        // 统计手牌中每种牌的数量
-        for (Integer card : tmp) {
-            cardCount.put(card, cardCount.getOrDefault(card, 0) + 1);
-        }
 
         // 统计鬼牌数量
         for (Integer gui : guiCard) {
@@ -454,6 +540,13 @@ public class HuUtil {
                     guiCount++;
                 }
             }
+        }
+        // 移除鬼牌
+        tmp = tmp.stream().filter(item -> !item.equals(guiCard.get(0))).collect(Collectors.toList());
+
+        // 统计手牌中每种牌的数量
+        for (Integer card : tmp) {
+            cardCount.put(card, cardCount.getOrDefault(card, 0) + 1);
         }
 
         // 统计对子数量
@@ -462,24 +555,32 @@ public class HuUtil {
             pairCount += (count == 2 ? 1 : 0);
         }
 
-        if (pairCount + guiCount >= 5) {
-            return (pairCount + guiCount - 1);
-        }
-        return 0;
-    }
+        if (isScore) {
+            if (pairCount + guiCount >= 5) {
+                return (pairCount + guiCount - 1);
+            }
+            return 0;
 
-    public static double isThirthen(List<Integer> tmp, List<Integer> guiCard) {
-        int count = 0;
-        int guiCount = 0;
-        for (int i = 0; i < tmp.size(); i++) {
-            if (tmp.get(i) == MaJiangDef.WAN1 || tmp.get(i) == MaJiangDef.WAN9
-                    || tmp.get(i) == MaJiangDef.TONG1 || tmp.get(i) == MaJiangDef.TONG9
-                    || tmp.get(i) == MaJiangDef.TIAO1 || tmp.get(i) == MaJiangDef.TIAO9
-                    || tmp.get(i) == MaJiangDef.FENG_DONG || tmp.get(i) == MaJiangDef.FENG_NAN || tmp.get(i) == MaJiangDef.FENG_XI || tmp.get(i) == MaJiangDef.FENG_BEI
-                    || tmp.get(i) == MaJiangDef.JIAN_ZHONG || tmp.get(i) == MaJiangDef.JIAN_FA || tmp.get(i) == MaJiangDef.JIAN_BAI) {
-                count++;
+        }
+        else {
+            if (pairCount + guiCount == 7) {
+                return 1;
+            }
+            else {
+                return 0;
             }
         }
+    }
+
+    public static double isQiDui(List<Integer> tmp, List<Integer> guiCard) {
+       return isQiDui(tmp, guiCard, true);
+    }
+
+    public static double isThirthen(List<Integer> tmp, List<Integer> guiCard, boolean isScore) {
+        int countSingle = 0;
+        int countDouble = 0;
+        int guiCount = 0;
+
         // 统计鬼牌数量
         for (Integer gui : guiCard) {
             for (Integer card : tmp) {
@@ -488,10 +589,119 @@ public class HuUtil {
                 }
             }
         }
-        if (count + guiCount >= 10) {
-            return count + guiCount - 6;
+        // 移除鬼牌
+        tmp = tmp.stream().filter(item -> !item.equals(guiCard.get(0))).collect(Collectors.toList());
+
+        Set<Integer> tmpSet = new HashSet<>(tmp);
+        if (tmpSet.size() < 10) {
+            return 0;
         }
-        return 0;
+        // 使用一个哈希表来存储每个数字出现的次数
+        Map<Integer, Integer> countMap = new HashMap<>();
+
+        // 遍历列表，统计每个数字的出现次数
+        for (int num : tmp) {
+            countMap.put(num, countMap.getOrDefault(num, 0) + 1);
+        }
+
+        // 检查是否有数字出现次数大于2次
+        for (int countTemp : countMap.values()) {
+            if (countTemp > 2) {
+                return 0;
+            }
+        }
+        for (int i = 0; i < tmp.size(); i++) {
+            if (tmp.get(i) == MaJiangDef.WAN1 || tmp.get(i) == MaJiangDef.WAN9
+                    || tmp.get(i) == MaJiangDef.TONG1 || tmp.get(i) == MaJiangDef.TONG9
+                    || tmp.get(i) == MaJiangDef.TIAO1 || tmp.get(i) == MaJiangDef.TIAO9
+                    || tmp.get(i) == MaJiangDef.FENG_DONG || tmp.get(i) == MaJiangDef.FENG_NAN || tmp.get(i) == MaJiangDef.FENG_XI || tmp.get(i) == MaJiangDef.FENG_BEI
+                    || tmp.get(i) == MaJiangDef.JIAN_ZHONG || tmp.get(i) == MaJiangDef.JIAN_FA || tmp.get(i) == MaJiangDef.JIAN_BAI) {
+                if (countMap.get(tmp.get(i)) != null && countMap.get(tmp.get(i)) == 1) {
+                    countSingle++;
+                }
+                else {
+                    countDouble++;
+                }
+            }
+        }
+        if (countDouble > 2) {
+            return 0;
+        }
+
+        if (isScore) {
+            if (countSingle + countDouble + guiCount >= 10) {
+                return countSingle + countDouble + guiCount - 6;
+            }
+            return 0;
+        }
+        else {
+            if (countSingle + countDouble + guiCount == 14) {
+                return 1;
+            }
+            return 0;
+        }
+    }
+
+    public static double isThirthen(List<Integer> tmp, List<Integer> guiCard) {
+       return isThirthen(tmp, guiCard, true);
+    }
+
+    public static double isQingColor(List<Integer> tmp, List<Integer> guiCard, boolean isScore) {
+        int guiCount = 0;
+        int wan_key = 0;
+        int tong_key = 0;
+        int tiao_key = 0;
+        // 统计鬼牌数量
+        for (Integer gui : guiCard) {
+            for (Integer card : tmp) {
+                if (Objects.equals(card, gui)) {
+                    guiCount++;
+                }
+            }
+        }
+        // 移除鬼牌
+        tmp = tmp.stream().filter(item -> !item.equals(guiCard.get(0))).collect(Collectors.toList());
+
+        for (int i = 0; i < tmp.size(); i++) {
+            if (tmp.get(i) >= MaJiangDef.WAN1 && tmp.get(i) <= MaJiangDef.WAN9) {
+                wan_key++;
+            }
+            else if (tmp.get(i) >= MaJiangDef.TONG1 && tmp.get(i) <= MaJiangDef.TONG9) {
+                tong_key++;
+            }
+            else if (tmp.get(i) >= MaJiangDef.TIAO1 && tmp.get(i) <= MaJiangDef.TIAO9) {
+                tiao_key++;
+            }
+        }
+
+        if (isScore) {
+            if (wan_key + guiCount >= 10) {
+                return wan_key + guiCount - 6;
+            }
+            if (tong_key + guiCount >= 10) {
+                return tong_key + guiCount - 6;
+            }
+            if (tiao_key + guiCount >= 10) {
+                return tiao_key + guiCount - 6;
+            }
+            return 0;
+        }
+        else {
+            if (wan_key + guiCount == 14) {
+                return 1;
+            }
+            if (tong_key + guiCount == 14) {
+                return 1;
+            }
+            if (tiao_key + guiCount == 14) {
+                return 1;
+            }
+            return 0;
+        }
+    }
+
+    public static double isQingColor(List<Integer> tmp, List<Integer> guiCard) {
+       return isQingColor(tmp, guiCard, true);
     }
 
     public static void gen() {
@@ -518,10 +728,10 @@ public class HuUtil {
     }
 
     public static void testTing() {
-        String init = "1万,5万,1筒,4筒,8筒,2条,5条,8条,东,西,南,北,发";
+        String init = "1万,9万,1筒,9筒,1条,9条,北,东,南,西,发,白,中";
         String gui = "中";
         List<Integer> cards = MaJiangDef.stringToCards(init);
-        System.out.println(MaJiangDef.cardsToString(HuUtil.isTing(cards, MaJiangDef.stringToCard(gui))));
+        System.out.println(MaJiangDef.cardsToString(HuUtil.isTing(cards, MaJiangDef.stringToCard(gui), true)));
         System.out.println(MaJiangDef.cardsToString(HuUtil.isTingExtra(cards, MaJiangDef.stringToCards(gui))));
     }
 

@@ -154,7 +154,7 @@ public class AIUtil {
                 if (!guiCard.contains(c)) {
                     List<Integer> tmp = new ArrayList<>(input);
                     tmp.remove(c);
-                    double isSpecial = specialHU(tmp, guiCard);
+                    double isSpecial = specialHU(tmp, guiCard, extHu);
                     double score = calc(tmp, guiCard, extHu);
                     map.put(c, Math.max(score, isSpecial));
                     // score大于4听牌
@@ -196,15 +196,22 @@ public class AIUtil {
         return ret;
     }
 
-    private static double specialHU(List<Integer> tmp, List<Integer> guiCard) {
+    private static double specialHU(List<Integer> tmp, List<Integer> guiCard, boolean extHu) {
         if (tmp.size() != 13) {
             return 0;
         }
         List<Double> scoreList = new ArrayList<Double>();
         double qidui = HuUtil.isQiDui(tmp, guiCard);
         scoreList.add(qidui);
-        double thirthen = HuUtil.isThirthen(tmp, guiCard);
-        scoreList.add(thirthen);
+        if (extHu) {
+            // 有字牌的麻将，例如乐平麻将,十三幺
+            double thirthen = HuUtil.isThirthen(tmp, guiCard);
+            scoreList.add(thirthen);
+            // 清一色
+           double qingColor = HuUtil.isQingColor(tmp, guiCard);
+           scoreList.add(qingColor);
+        }
+
         return Collections.max(scoreList);
 
     }
@@ -332,8 +339,8 @@ public class AIUtil {
     }
 
     public static void testOut() {
-        String init = "1万,1万,5万,5万,3万,3万,1筒,1筒,3筒,2筒,1条,西,西,4万";
-        String guiStr = "中";
+        String init = "1万,1万,5万,5万,2万,7万,1条,1条,4条,3万,5条,西,北,4万";
+        String guiStr = "1万";
         List<Integer> cards = MaJiangDef.stringToCards(init);
         List<Integer> gui = MaJiangDef.stringToCards(guiStr);
 
