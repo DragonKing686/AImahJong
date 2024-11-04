@@ -237,25 +237,12 @@ public class HuUtil {
         if (extHu) {
             // 有字牌的麻将，例如乐平麻将,十三幺
             result.addAll(HuUtil.tingThirthen(tmp, guiCard));
-            // 清一色
-            result.addAll(HuUtil.tingQingColor(tmp, guiCard));
+//            // 清一色
+//            result.addAll(HuUtil.tingQingColor(tmp, guiCard));
         }
         return result;
     }
 
-    private static List<Integer> tingQingColor(List<Integer> tmp, int guiCard) {
-        List<Integer> result = new ArrayList<>();
-        List<Integer> guiList = new ArrayList<>();
-        guiList.add(guiCard);
-        for (int i = MaJiangDef.WAN1; i <= MaJiangDef.JIAN_BAI ; i++) {
-            List<Integer> all = new ArrayList<>(tmp);
-            all.add(i);
-            if (isQingColor(all,guiList, false) == 1) {
-                result.add(i);
-            }
-        }
-        return result;
-    }
 
     private static List<Integer> tingThirthen(List<Integer> tmp, int guiCard) {
         List<Integer> result = new ArrayList<>();
@@ -519,11 +506,6 @@ public class HuUtil {
             if (thirthen == 1) {
                 return true;
             }
-            // 清一色
-            double qingColor = HuUtil.isQingColor(tmp, guiList, false);
-            if (qingColor == 1) {
-                return true;
-            }
         }
         return false;
     }
@@ -552,7 +534,7 @@ public class HuUtil {
         // 统计对子数量
         int pairCount = 0;
         for (int count : cardCount.values()) {
-            pairCount += (count == 2 ? 1 : 0);
+            pairCount += (count / 2);
         }
 
         if (isScore) {
@@ -646,63 +628,6 @@ public class HuUtil {
        return isThirthen(tmp, guiCard, true);
     }
 
-    public static double isQingColor(List<Integer> tmp, List<Integer> guiCard, boolean isScore) {
-        int guiCount = 0;
-        int wan_key = 0;
-        int tong_key = 0;
-        int tiao_key = 0;
-        // 统计鬼牌数量
-        for (Integer gui : guiCard) {
-            for (Integer card : tmp) {
-                if (Objects.equals(card, gui)) {
-                    guiCount++;
-                }
-            }
-        }
-        // 移除鬼牌
-        tmp = tmp.stream().filter(item -> !item.equals(guiCard.get(0))).collect(Collectors.toList());
-
-        for (int i = 0; i < tmp.size(); i++) {
-            if (tmp.get(i) >= MaJiangDef.WAN1 && tmp.get(i) <= MaJiangDef.WAN9) {
-                wan_key++;
-            }
-            else if (tmp.get(i) >= MaJiangDef.TONG1 && tmp.get(i) <= MaJiangDef.TONG9) {
-                tong_key++;
-            }
-            else if (tmp.get(i) >= MaJiangDef.TIAO1 && tmp.get(i) <= MaJiangDef.TIAO9) {
-                tiao_key++;
-            }
-        }
-
-        if (isScore) {
-            if (wan_key + guiCount >= 10) {
-                return wan_key + guiCount - 6;
-            }
-            if (tong_key + guiCount >= 10) {
-                return tong_key + guiCount - 6;
-            }
-            if (tiao_key + guiCount >= 10) {
-                return tiao_key + guiCount - 6;
-            }
-            return 0;
-        }
-        else {
-            if (wan_key + guiCount == 14) {
-                return 1;
-            }
-            if (tong_key + guiCount == 14) {
-                return 1;
-            }
-            if (tiao_key + guiCount == 14) {
-                return 1;
-            }
-            return 0;
-        }
-    }
-
-    public static double isQingColor(List<Integer> tmp, List<Integer> guiCard) {
-       return isQingColor(tmp, guiCard, true);
-    }
 
     public static void gen() {
 //		HuTableJian.gen();

@@ -59,10 +59,11 @@ public class MaJiangAPI {
         String cards = body.getString("cards");
         String gui = body.getString("gui");
         String other = body.getString("other");
+        Boolean extHu = body.getBoolean("extHu");
         List<Integer> cardsList = MaJiangDef.stringToCards(cards);
         List<Integer> guiList = MaJiangDef.stringToCards(gui);
         Collections.sort(cardsList);
-        ArrayList<Integer> integers = AIUtil.chiAI(cardsList, guiList, MaJiangDef.stringToCard(other));
+        ArrayList<Integer> integers = AIUtil.chiAI(cardsList, guiList, MaJiangDef.stringToCard(other), extHu);
         String cardsToString = MaJiangDef.cardsToString(integers);
         JSONObject result = new JSONObject();
         result.put("resultCode", "0");
@@ -76,12 +77,13 @@ public class MaJiangAPI {
         String cards = body.getString("cards");
         String gui = body.getString("gui");
         String other = body.getString("other");
+        Boolean extHu = body.getBoolean("extHu");
         String[] split = other.split(",");
         List<Integer> cardsList = MaJiangDef.stringToCards(cards);
         List<Integer> guiList = MaJiangDef.stringToCards(gui);
         Collections.sort(cardsList);
         Boolean integers = AIUtil.chiAI(cardsList, guiList, MaJiangDef.stringToCard(split[0]),
-                MaJiangDef.stringToCard(split[1]), MaJiangDef.stringToCard(split[2]));
+                MaJiangDef.stringToCard(split[1]), MaJiangDef.stringToCard(split[2]), extHu);
         JSONObject result = new JSONObject();
         result.put("resultCode", "0");
         result.put("resultData", integers);
@@ -94,9 +96,10 @@ public class MaJiangAPI {
         String cards = body.getString("cards");
         String gui = body.getString("gui");
         String other = body.getString("other");
+        Boolean extHu = body.getBoolean("extHu");
         List<Integer> cardsList = MaJiangDef.stringToCards(cards);
         List<Integer> guiList = MaJiangDef.stringToCards(gui);
-        boolean pengAI = AIUtil.pengAI(cardsList, guiList, MaJiangDef.stringToCard(other), 0.d);
+        boolean pengAI = AIUtil.pengAI(cardsList, guiList, MaJiangDef.stringToCard(other), 0.d, extHu);
         JSONObject result = new JSONObject();
         result.put("resultCode", "0");
         result.put("resultData", pengAI);
@@ -109,9 +112,10 @@ public class MaJiangAPI {
         String cards = body.getString("cards");
         String gui = body.getString("gui");
         String other = body.getString("other");
+        Boolean extHu = body.getBoolean("extHu");
         List<Integer> cardsList = MaJiangDef.stringToCards(cards);
         List<Integer> guiList = MaJiangDef.stringToCards(gui);
-        boolean gangAI = AIUtil.gangAI(cardsList, guiList, MaJiangDef.stringToCard(other), 0.d);
+        boolean gangAI = AIUtil.gangAI(cardsList, guiList, MaJiangDef.stringToCard(other), 0.d, extHu);
         JSONObject result = new JSONObject();
         result.put("resultCode", "0");
         result.put("resultData", gangAI);
@@ -128,15 +132,15 @@ public class MaJiangAPI {
         List<Integer> cardsList = MaJiangDef.stringToCards(cards);
         List<Integer> guiList = MaJiangDef.stringToCards(gui);
         long start = System.currentTimeMillis();
-        int outAI = AIUtil.outAI(cardsList, guiList, extHu == null || extHu);
+//        int outAI = AIUtil.outAI(cardsList, guiList, extHu == null || extHu);
         long end = System.currentTimeMillis();
 
-        String string = MaJiangDef.cardToString(outAI);
+//        String string = MaJiangDef.cardToString(outAI);
 
-        logger.info("AI computation result: {}, time taken: {} ms", string, (end - start));
+//        logger.info("AI computation result: {}, time taken: {} ms", string, (end - start));
         JSONObject result = new JSONObject();
         result.put("resultCode", "0");
-        result.put("resultData", string);
+//        result.put("resultData", string);
         return result;
     }
 }

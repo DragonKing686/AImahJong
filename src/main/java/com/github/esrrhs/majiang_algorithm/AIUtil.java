@@ -140,8 +140,8 @@ public class AIUtil {
         }
     }
 
-    public static int outAI(List<Integer> input, List<Integer> guiCard, boolean extHu) {
-        int ret = 0;
+    public static List<Integer> outAI(List<Integer> input, List<Integer> guiCard, boolean extHu) {
+        List<Integer> ret = new ArrayList<>();
         List<Integer> maxList = new ArrayList<>();
         Map<Integer, Double> map = new HashMap<>();
         double max = Double.MIN_VALUE;
@@ -168,7 +168,6 @@ public class AIUtil {
 
                     if (score >= max) {
                         max = score;
-                        ret = c;
                     }
                 }
             }
@@ -178,22 +177,32 @@ public class AIUtil {
                 maxList.add(integerDoubleEntry.getKey());
             }
         }
+        List<Integer> bestCard = new ArrayList<>(); // Default to ret if no higher score is found
         // 特殊牌型概率一样的时候，比较score的分数
-        if (maxList.size() > 1) {
+        if (max <= maxSpecial && maxList.size() > 1) {
             double highestScore = Double.MIN_VALUE;
-            int bestCard = ret; // Default to ret if no higher score is found
 
             for (Integer card : maxList) {
                 double score = map.get(card);
                 if (score > highestScore) {
                     highestScore = score;
-                    bestCard = card;
                 }
             }
-
-            ret = bestCard; // Update ret to the card with the highest score
+            for (Map.Entry<Integer, Double> integerDoubleEntry : map.entrySet()) {
+                if (integerDoubleEntry.getValue() == highestScore) {
+                    bestCard.add(integerDoubleEntry.getKey());
+                }
+            }
         }
-        return ret;
+        else {
+            for (Map.Entry<Integer, Double> integerDoubleEntry : map.entrySet()) {
+                if (integerDoubleEntry.getValue() == max) {
+                    ret.add(integerDoubleEntry.getKey());
+                }
+            }
+            return ret;
+        }
+        return bestCard;
     }
 
     private static double specialHU(List<Integer> tmp, List<Integer> guiCard, boolean extHu) {
@@ -207,9 +216,6 @@ public class AIUtil {
             // 有字牌的麻将，例如乐平麻将,十三幺
             double thirthen = HuUtil.isThirthen(tmp, guiCard);
             scoreList.add(thirthen);
-            // 清一色
-           double qingColor = HuUtil.isQingColor(tmp, guiCard);
-           scoreList.add(qingColor);
         }
 
         return Collections.max(scoreList);
@@ -217,7 +223,7 @@ public class AIUtil {
     }
 
 
-    public static boolean chiAI(List<Integer> input, List<Integer> guiCard, int card, int card1, int card2) {
+    public static boolean chiAI(List<Integer> input, List<Integer> guiCard, int card, int card1, int card2, boolean extHu) {
         if (guiCard.contains(card) || guiCard.contains(card1) || guiCard.contains(card2)) {
             return false;
         }
@@ -226,7 +232,7 @@ public class AIUtil {
             return false;
         }
 
-        double score = calc(input, guiCard);
+        double score = calc(input, guiCard, extHu);
 
         List<Integer> tmp = new ArrayList<>(input);
         tmp.remove((Integer) card1);
@@ -236,13 +242,13 @@ public class AIUtil {
         return scoreNew >= score;
     }
 
-    public static ArrayList<Integer> chiAI(List<Integer> input, List<Integer> guiCard, int card) {
+    public static ArrayList<Integer> chiAI(List<Integer> input, List<Integer> guiCard, int card, boolean extHu) {
         ArrayList<Integer> ret = new ArrayList<>();
         if (guiCard.contains(card)) {
             return ret;
         }
 
-        double score = calc(input, guiCard);
+        double score = calc(input, guiCard, extHu);
         double scoreNewMax = 0;
 
         int card1 = 0;
@@ -254,7 +260,7 @@ public class AIUtil {
             List<Integer> tmp = new ArrayList<>(input);
             tmp.remove((Integer) (card - 2));
             tmp.remove((Integer) (card - 1));
-            double scoreNew = calc(tmp, guiCard);
+            double scoreNew = calc(tmp, guiCard, extHu);
             if (scoreNew > scoreNewMax) {
                 scoreNewMax = scoreNew;
                 card1 = card - 2;
@@ -268,7 +274,7 @@ public class AIUtil {
             List<Integer> tmp = new ArrayList<>(input);
             tmp.remove((Integer) (card - 1));
             tmp.remove((Integer) (card + 1));
-            double scoreNew = calc(tmp, guiCard);
+            double scoreNew = calc(tmp, guiCard, extHu);
             if (scoreNew > scoreNewMax) {
                 scoreNewMax = scoreNew;
                 card1 = card - 1;
@@ -282,7 +288,7 @@ public class AIUtil {
             List<Integer> tmp = new ArrayList<>(input);
             tmp.remove((Integer) (card + 1));
             tmp.remove((Integer) (card + 2));
-            double scoreNew = calc(tmp, guiCard);
+            double scoreNew = calc(tmp, guiCard, extHu);
             if (scoreNew > scoreNewMax) {
                 scoreNewMax = scoreNew;
                 card1 = card + 1;
@@ -298,7 +304,7 @@ public class AIUtil {
         return ret;
     }
 
-    public static boolean pengAI(List<Integer> input, List<Integer> guiCard, int card, double award) {
+    public static boolean pengAI(List<Integer> input, List<Integer> guiCard, int card, double award, boolean extHu) {
         if (guiCard.contains(card)) {
             return false;
         }
@@ -307,17 +313,17 @@ public class AIUtil {
             return false;
         }
 
-        double score = calc(input, guiCard);
+        double score = calc(input, guiCard, extHu);
 
         List<Integer> tmp = new ArrayList<>(input);
         tmp.remove((Integer) card);
         tmp.remove((Integer) card);
-        double scoreNew = calc(tmp, guiCard);
+        double scoreNew = calc(tmp, guiCard, extHu);
 
         return scoreNew + award >= score;
     }
 
-    public static boolean gangAI(List<Integer> input, List<Integer> guiCard, int card, double award) {
+    public static boolean gangAI(List<Integer> input, List<Integer> guiCard, int card, double award, boolean extHu) {
         if (guiCard.contains(card)) {
             return false;
         }
@@ -326,26 +332,26 @@ public class AIUtil {
             return false;
         }
 
-        double score = calc(input, guiCard);
+        double score = calc(input, guiCard, extHu);
 
         List<Integer> tmp = new ArrayList<>(input);
         tmp.remove((Integer) card);
         tmp.remove((Integer) card);
         tmp.remove((Integer) card);
         tmp.remove((Integer) card);
-        double scoreNew = calc(tmp, guiCard);
+        double scoreNew = calc(tmp, guiCard, extHu);
 
         return scoreNew + award >= score;
     }
 
     public static void testOut() {
-        String init = "1万,1万,5万,5万,2万,7万,1条,1条,4条,3万,5条,西,北,4万";
-        String guiStr = "1万";
+        String init = "1万,1万,3万,3万,7万,7万,1条,1条,1条,9万,东,西,北,9万";
+        String guiStr = "中";
         List<Integer> cards = MaJiangDef.stringToCards(init);
         List<Integer> gui = MaJiangDef.stringToCards(guiStr);
 
-        int out = outAI(cards, gui, true);
-        System.out.println(MaJiangDef.cardToString(out));
+        List<Integer> out = outAI(cards, gui, true);
+        System.out.println(MaJiangDef.cardsToString(out));
     }
 
     public static void testChi() {
@@ -355,8 +361,8 @@ public class AIUtil {
         List<Integer> gui = MaJiangDef.stringToCards(guiStr);
 
         System.out.println(chiAI(cards, gui, MaJiangDef.stringToCard("6筒"), MaJiangDef.stringToCard("5筒"),
-                MaJiangDef.stringToCard("4筒")));
-        System.out.println(MaJiangDef.cardsToString(chiAI(cards, gui, MaJiangDef.stringToCard("3筒"))));
+                MaJiangDef.stringToCard("4筒"), false));
+        System.out.println(MaJiangDef.cardsToString(chiAI(cards, gui, MaJiangDef.stringToCard("3筒"), false)));
     }
 
     public static void testPeng() {
@@ -365,7 +371,7 @@ public class AIUtil {
         List<Integer> cards = MaJiangDef.stringToCards(init);
         List<Integer> gui = MaJiangDef.stringToCards(guiStr);
 
-        System.out.println(pengAI(cards, gui, MaJiangDef.stringToCard("1条"), 0.d));
+        System.out.println(pengAI(cards, gui, MaJiangDef.stringToCard("1条"), 0.d, false));
     }
 
     public static void testGang() {
@@ -374,7 +380,7 @@ public class AIUtil {
         List<Integer> cards = MaJiangDef.stringToCards(init);
         List<Integer> gui = MaJiangDef.stringToCards(guiStr);
 
-        System.out.println(gangAI(cards, gui, MaJiangDef.stringToCard("2万"), 1.d));
+        System.out.println(gangAI(cards, gui, MaJiangDef.stringToCard("2万"), 1.d, false));
     }
 
     public static void gen() {
@@ -426,11 +432,11 @@ public class AIUtil {
                 System.out.println("手牌: " + MaJiangDef.cardsToString(cards));
             }
             step++;
-            int out = outAI(cards, gui, true);
-            cards.remove((Integer) out);
+//            int out = outAI(cards, gui, true);
+//            cards.remove((Integer) out);
             Integer remove = total.remove(0);
             cards.add(remove);
-            System.out.println("打出:" + MaJiangDef.cardToString(out) + "    摸进:" + MaJiangDef.cardToString(remove));
+//            System.out.println("打出:" + MaJiangDef.cardToString(out) + "    摸进:" + MaJiangDef.cardToString(remove));
         }
     }
 
